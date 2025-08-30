@@ -20,6 +20,25 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: "${{ env.BUG_ID }}"
 
+      - name: Prefix Issue Title with BUG ID
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = context.issue.number;
+            const issueTitle = context.payload.issue.title;
+            const bugId = process.env.BUG_ID;
+
+            // Only prefix if not already prefixed
+            if (!issueTitle.startsWith(bugId)) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                title: `${bugId}: ${issueTitle}`
+              });
+            }
+
       - name: Comment BUG ID
         uses: actions/github-script@v6
         with:
