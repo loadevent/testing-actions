@@ -1,0 +1,33 @@
+name: Assign BUG ID
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-bug-id:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate BUG ID
+        id: bug_id
+        run: |
+          # BUG ID = BUG-<issue_number>
+          echo "BUG_ID=BUG-${{ github.event.issue.number }}" >> $GITHUB_ENV
+
+      - name: Add BUG ID label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: "${{ env.BUG_ID }}"
+
+      - name: Comment BUG ID
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ This issue has been assigned the ID **${process.env.BUG_ID}**`
+            })
